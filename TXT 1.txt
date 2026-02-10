@@ -307,5 +307,5 @@ git remote add origin https://github.com/WilmerBuestan/wilmer-examen-cd.git
 
 
 git add .
-git commit -m "puse 99999"
+git commit -m "corregegi a 3 lineas el html de la presentacion"
 git push 
