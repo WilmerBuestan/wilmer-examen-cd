@@ -299,3 +299,13 @@ git push -u origin main
 7. Verifica el **Deploy Live**.
 
 ¡Listo! Tienes todo cubierto. ¡A por ese 7! 🫡
+
+
+
+# Reemplaza la URL con la que acabas de copiar
+git remote add origin https://github.com/WilmerBuestan/wilmer-examen-cd.git
+
+
+git add .
+git commit -m "puse 99999"
+git push 
