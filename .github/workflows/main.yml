@@ -1,0 +1,46 @@
+name: CI/CD Examen
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Instalar dependencias
+        run: npm ci
+      
+      - name: Lint
+        run: npm run lint
+      
+      - name: Test y Cobertura
+        run: npm run test
+        
+      - name: Construir
+        run: npm run build
+
+      # DEPLOY PREVIEW (Solo PR)
+      - name: Deploy Preview
+        if: github.event_name == 'pull_request'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_WILMER_EXAMEN_CD }}'
+          projectId: wilmer-examen-cd
+
+      # DEPLOY LIVE (Solo Main)
+      - name: Deploy Live
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_WILMER_EXAMEN_CD }}'
+          projectId: wilmer-examen-cd
+          channelId: live

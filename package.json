@@ -1,0 +1,37 @@
+{
+  "name": "examnefinal",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+
+
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest --coverage",
+    "lint": "eslint src/**",
+    "build": "echo 'Build listo'"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/utils/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "lines": 80
+      }
+    }
+  },
+ 
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^10.0.0",
+    "jest": "^30.2.0"
+  }
+}

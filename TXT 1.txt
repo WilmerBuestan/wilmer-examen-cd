@@ -1,0 +1,301 @@
+
+
+```bash
+npm init -y
+npm install --save-dev jest eslint
+mkdir -p src/utils tests public .github/workflows
+
+```
+
+### ⚙️ PASO 2: Configuración (Package.json y ESLint)
+
+1. Abre `package.json` y reemplaza la sección `"scripts"` por esta (fíjate en el script de coverage):
+
+```json
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest --coverage",
+    "lint": "eslint src/**",
+    "build": "echo 'Build listo'"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/utils/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "lines": 80
+      }
+    }
+  },
+
+```
+
+2. Crea el archivo `eslint.config.mjs` en la raíz y pega:
+
+```javascript
+export default [
+    {
+        files: ["**/*.js"],
+        rules: {
+            "semi": ["error", "always"],
+            "quotes": ["error", "single"]
+        }
+    }
+];
+
+```
+
+### 🧠 PASO 3: La Lógica Obligatoria (Parte 1)
+
+Crea el archivo **`src/utils/conversions.js`**. Aquí está la lógica exacta con las validaciones y redondeos que pide el PDF.
+
+```javascript
+function toCelsius(f) {
+    if (typeof f !== 'number' || !isFinite(f)) {
+        throw new TypeError('Input must be a finite number');
+    }
+    const result = (f - 32) * 5 / 9;
+    return Number(result.toFixed(1));
+}
+
+function toFahrenheit(c) {
+    if (typeof c !== 'number' || !isFinite(c)) {
+        throw new TypeError('Input must be a finite number');
+    }
+    const result = (c * 9 / 5) + 32;
+    return Number(result.toFixed(1));
+}
+
+function movingAverage(series, window) {
+    if (!Array.isArray(series) || series.some((n) => typeof n !== 'number' || !isFinite(n))) {
+        throw new TypeError('Series must be an array of numbers');
+    }
+    if (typeof window !== 'number' || !Number.isInteger(window)) {
+        throw new TypeError('Window must be an integer');
+    }
+    if (window < 2 || window > series.length) {
+        throw new RangeError('Window out of range');
+    }
+
+    const result = [];
+    for (let i = 0; i <= series.length - window; i++) {
+        const chunk = series.slice(i, i + window);
+        const sum = chunk.reduce((acc, val) => acc + val, 0);
+        const avg = sum / window;
+        result.push(Number(avg.toFixed(2)));
+    }
+    return result;
+}
+
+module.exports = { toCelsius, toFahrenheit, movingAverage };
+
+```
+
+### 🧪 PASO 4: Las Pruebas Unitarias (Cobertura > 80%)
+
+Crea el archivo **`tests/conversions.test.js`**. Cubre los casos base y los errores para asegurar el puntaje.
+
+```javascript
+const { toCelsius, toFahrenheit, movingAverage } = require('../src/utils/conversions');
+
+describe('Pruebas de Clima y Conversión', () => {
+    
+    // --- toCelsius ---
+    test('32°F debe ser 0.0°C', () => {
+        expect(toCelsius(32)).toBe(0.0);
+    });
+    test('-40°F debe ser -40.0°C', () => {
+        expect(toCelsius(-40)).toBe(-40.0);
+    });
+    test('Debe lanzar TypeError si no es número', () => {
+        expect(() => toCelsius('hola')).toThrow(TypeError);
+    });
+
+    // --- toFahrenheit ---
+    test('0°C debe ser 32.0°F', () => {
+        expect(toFahrenheit(0)).toBe(32.0);
+    });
+    test('100°C debe ser 212.0°F', () => {
+        expect(toFahrenheit(100)).toBe(212.0);
+    });
+    test('Debe lanzar TypeError si entrada invalida', () => {
+        expect(() => toFahrenheit(null)).toThrow(TypeError);
+    });
+
+    // --- movingAverage ---
+    test('Caso base 1: [10,20,30,40], w=2', () => {
+        expect(movingAverage([10, 20, 30, 40], 2)).toEqual([15.00, 25.00, 35.00]);
+    });
+    test('Caso base 2: [1,2,3], w=3', () => {
+        expect(movingAverage([1, 2, 3], 3)).toEqual([2.00]);
+    });
+    test('Error: Array con strings lanza TypeError', () => {
+        expect(() => movingAverage([1, 'a'], 2)).toThrow(TypeError);
+    });
+    test('Error: Ventana fuera de rango lanza RangeError', () => {
+        expect(() => movingAverage([1, 2, 3], 5)).toThrow(RangeError); // w > length
+        expect(() => movingAverage([1, 2, 3], 1)).toThrow(RangeError); // w < 2
+    });
+});
+
+```
+
+### 🎨 PASO 5: Página Estática (Parte 2 - CD)
+
+1. Crea **`public/index.html`** (Rellena tus datos donde dice TU NOMBRE, NRC, etc):
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil — Clima & Conversión</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Perfil — Clima & Conversión</h1>
+        </header>
+        <main>
+            <section class="profile-card">
+                <h2>Wilmer Buestan</h2>
+                <p><strong>NRC:</strong> 27857 | <strong>Correo:</strong> wobuestan@espe.edu.ec</p>
+                <p class="bio">
+                    Estudiante de Ingeniería de Software apasionado por el desarrollo backend,
+                    la automatización de pruebas y la implementación de pipelines CI/CD.
+                </p>
+                <ul class="details">
+                    <li>📍 Ubicación: Quito, Ecuador</li>
+                    <li>💻 Interés: DevOps & Cloud</li>
+                    <li>🚀 Hobbie: Trail Running</li>
+                </ul>
+            </section>
+        </main>
+        <footer>
+            <p>Examen Parcial 1 - CI/CD</p>
+        </footer>
+    </div>
+</body>
+</html>
+
+```
+
+2. Crea **`public/styles.css`** (Para cumplir con la paleta y estilo):
+
+```css
+body { font-family: sans-serif; background-color: #f4f4f9; color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; text-align: center; border-top: 5px solid #3498db; }
+h1 { color: #2c3e50; font-size: 1.5rem; }
+.profile-card { margin-top: 1rem; }
+.bio { color: #7f8c8d; line-height: 1.6; margin: 1rem 0; }
+.details { list-style: none; padding: 0; text-align: left; background: #ecf0f1; padding: 1rem; border-radius: 4px; }
+.details li { margin-bottom: 0.5rem; }
+footer { margin-top: 2rem; font-size: 0.8rem; color: #bdc3c7; }
+
+```
+
+### 🔥 PASO 6: Firebase y GitHub Actions (La parte crítica)
+
+Este paso hazlo con cuidado en la terminal:
+
+1. **Login:** `firebase login` (si no estás logueado).
+2. **Init:** `firebase init hosting`
+* **Project:** Create a new project (ponle un nombre único ej: `wilmer-examen-cd`).
+* **Public directory:** `public` (¡Importante!).
+* **Single page app:** `No`.
+* **Automatic builds with GitHub:** `Yes`.
+* **Login GitHub:** Te pedirá loguearte y elegir tu repositorio (asegúrate de haber hecho `git init` y tener el repo creado en GitHub antes de este paso).
+* **Script for build:** `npm run build`.
+* **Deploy on merge:** `Yes`.
+* **Branch:** `main`.
+
+
+
+**¡ALTO!** Una vez que Firebase termine, te habrá creado unos archivos `.yml` en `.github/workflows`. **VAMOS A REEMPLAZARLOS** para cumplir con el requisito de "Lint + Coverage 80% + Deploy".
+
+3. Ve a `.github/workflows`. Borra lo que haya y crea un único archivo **`main.yml`** con esto. (Asegúrate de cambiar `TU_ID_DE_PROYECTO` en la última línea si es necesario, aunque Firebase suele guardar el secreto automáticamente).
+
+**Copia este YAML Maestro:**
+
+```yaml
+name: CI/CD Examen
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Instalar dependencias
+        run: npm ci
+      
+      - name: Lint (Calidad de Código)
+        run: npm run lint
+      
+      - name: Test y Cobertura (Debe ser >= 80%)
+        run: npm run test
+        
+      - name: Construir Sitio
+        run: npm run build
+
+      # DEPLOY PREVIEW (Solo en Pull Requests)
+      - name: Deploy Preview a Firebase
+        if: github.event_name == 'pull_request'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_WILMER_EXAMEN_CD }}' # OJO: Verifica el nombre del secreto en Settings -> Secrets
+          projectId: wilmer-examen-cd # Pon aquí el ID de tu proyecto firebase real
+
+      # DEPLOY LIVE (Solo en Push a Main y si los tests pasaron)
+      - name: Deploy Live a Producción
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_WILMER_EXAMEN_CD }}' # OJO: Verifica el nombre del secreto
+          projectId: wilmer-examen-cd # Pon aquí el ID de tu proyecto firebase real
+          channelId: live
+
+```
+
+**⚠️ NOTA CRÍTICA:**
+Cuando hiciste `firebase init`, se creó un secreto en tu GitHub llamado algo como `FIREBASE_SERVICE_ACCOUNT_...`.
+
+1. Ve a tu repo en GitHub -> Settings -> Secrets and variables -> Actions.
+2. Copia el nombre exacto de ese secreto.
+3. Pégalo en el YAML donde dice `secrets.FIREBASE_SERVICE_ACCOUNT_...`.
+4. También pon el ID de tu proyecto (lo ves en el archivo `.firebaserc`) donde dice `projectId`.
+
+### 🚀 PASO FINAL: Subir todo
+
+```bash
+git add .
+git commit -m "Examen Completo: CI/CD con Pruebas y Firebase"
+git push -u origin main
+
+```
+
+**Para la evidencia:**
+
+1. Crea una nueva rama `git checkout -b feature-cambio`.
+2. Haz un cambio pequeño en el HTML.
+3. `git push origin feature-cambio`.
+4. Abre un **Pull Request** en GitHub.
+5. Espera a que el bot de Firebase comente con la **URL de Preview** (Esto vale puntos).
+6. Haz Merge a `main`.
+7. Verifica el **Deploy Live**.
+
+¡Listo! Tienes todo cubierto. ¡A por ese 7! 🫡
