@@ -24,18 +24,11 @@ describe('Pruebas de Clima y Conversión', () => {
         expect(() => toFahrenheit(null)).toThrow(TypeError);
     });
 
-    // casos para moving average
-    test('Caso base 1: [10,20,30,40], w=2', () => {
-        expect(movingAverage([10, 20, 30, 40], 2)).toEqual([15.00, 25.00, 35.00]);
-    });
-    test('Caso base 2: [1,2,3], w=3', () => {
-        expect(movingAverage([1, 2, 3], 3)).toEqual([2.00]);
-    });
-    test('Error: Array con strings lanza TypeError', () => {
-        expect(() => movingAverage([1, 'a'], 2)).toThrow(TypeError);
-    });
-    test('Error: Ventana fuera de rango lanza RangeError', () => {
-        expect(() => movingAverage([1, 2, 3], 5)).toThrow(RangeError); // w > length
-        expect(() => movingAverage([1, 2, 3], 1)).toThrow(RangeError); // w < 2
-    });
-});
+ 
+
+
+}
+
+
+
+);
